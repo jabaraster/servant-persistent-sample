@@ -54,15 +54,6 @@ executable servant-sample
                      , servant-sample
   default-language:    Haskell2010
 
-test-suite servant-sample-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Spec.hs
-  build-depends:       base
-                     , servant-sample
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  default-language:    Haskell2010
-
 source-repository head
   type:     git
-  location: https://github.com/githubuser/servant-sample
+  location: https://github.com/jabaraster/servant-persistent-sample

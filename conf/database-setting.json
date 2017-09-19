@@ -1,8 +1,8 @@
 {
-    "user"     = "app",
-    "password" = "xx",
-    "host"     = "localhost",
-    "port"    = 5432,
-    "database" = "app",
-    "poolsize" = 5
+    "user"    : "app",
+    "password": "xxx",
+    "host"    : "localhost",
+    "port"    : 5432,
+    "database": "app",
+    "poolsize": 5
 }

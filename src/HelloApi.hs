@@ -12,14 +12,19 @@
 
 module HelloApi (
     main
+    , server
     , hello
     , user
 
     , HelloAPI
     ) where
 
-import           Control.Monad.Logger         (NoLoggingT, runNoLoggingT)
-import           Control.Monad.Trans.Class    (lift)
+import           Control.Monad.IO.Class       (liftIO)
+import           Control.Monad.Logger         (NoLoggingT
+                                              , runNoLoggingT
+                                              , LoggingT
+                                              , runLoggingT
+                                              )
 import           Control.Monad.Trans.Reader   (runReaderT)
 import           Control.Monad.Trans.Resource (ResourceT, runResourceT)
 import           Data.Aeson
@@ -49,6 +54,9 @@ User json
     name Text
     age Int
     deriving Eq Show Generic
+Employee json
+    name Text
+    deriving Eq Show Generic
 |]
 
 pgConf :: IO PostgresConf
@@ -62,26 +70,25 @@ doMigration = do
     conf <- pgConf
     runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runReaderT $ runMigration migrateAll
 
-selectUsers :: IO User
+selectUsers :: IO [Entity User]
 selectUsers = do
     conf <- pgConf
-    userList <- runDB conf $ selectList [] []
-    let ul = map (\(Entity _ u) -> u) userList
-    return (ul!!0)
+    runDB conf $ selectList [] []
 
-type HelloAPI  = Get '[PlainText] Text
+type HelloAPI  = Get '[JSON] [Entity User]
             :<|> "user" :> Capture "name" Text :> Capture "age" Int :> Get '[JSON] User
 
 helloApi :: Proxy HelloAPI
 helloApi = Proxy
 
 server :: Server HelloAPI
-server = hello :<|> user
-    where
-        -- user n a = return $ User n a
-        -- user n a = lift selectUsers
+server = liftIO selectUsers
+         :<|> user
 
+-- user :: Text -> Int -> IO User
 user n a = return $ User n a
+
+hello :: IO Text
 hello = return "Hello world"
 
 app :: Application
@@ -89,4 +96,8 @@ app = serve helloApi server
 
 main :: IO ()
 main = do
+    putStrLn "{- ----------------------------"
+    putStrLn " - start server!"
+    putStrLn " ----------------------------- -}"
+    doMigration
     run 1234 app
