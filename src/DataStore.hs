@@ -9,6 +9,7 @@
 
 module DataStore where
 
+import           Control.Lens
 import           Data.Text                    (Text)
 import           Database.Persist
 import           Database.Persist.TH          (mkMigrate
@@ -16,17 +17,16 @@ import           Database.Persist.TH          (mkMigrate
                                              , persistLowerCase
                                              , share
                                              , sqlSettings
+                                             , mpsGenerateLenses
                                               )
 import           DataStore.Internal
 import           GHC.Generics
 
-share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
+share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
 User json
     name Text
     age Int
-    deriving Eq Show Generic
-Employee json
-    name Text
+    UniqueUserName name
     deriving Eq Show Generic
 |]
 
@@ -37,9 +37,13 @@ getUser :: Key User -> IO (Maybe (Entity User))
 getUser = runDB . getEntity
 
 insertUser :: User -> IO (Entity User)
-insertUser user = do
-    key <- runDB $ insert user
-    pure $ Entity key user
+insertUser user = runDB $ do
+    mInDb <- getBy $ UniqueUserName $ user^.userName
+    case mInDb of
+      Just inDb -> pure inDb
+      Nothing   -> do
+                     key <- insert user
+                     pure $ Entity key user
 
 migrate :: IO ()
 migrate = doMigration migrateAll

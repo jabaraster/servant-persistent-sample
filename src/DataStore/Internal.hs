@@ -6,6 +6,7 @@ module DataStore.Internal (
 
 import           Control.Monad.Logger         (NoLoggingT
                                              , runNoLoggingT
+                                             , runStdoutLoggingT
                                              , LoggingT
                                              , runLoggingT
                                               )
@@ -20,6 +21,7 @@ import           Database.Persist.Postgresql  (PostgresConf(..)
                                              , withPostgresqlConn
                                               )
 import           Database.Persist.Sql         (SqlPersistT
+                                             , Migration
                                              , ConnectionPool
                                              , runSqlConn
                                              , runMigration
@@ -28,12 +30,16 @@ import           Database.Persist.Sql         (SqlPersistT
 pgConf :: IO PostgresConf
 pgConf = B.readFile "conf/database-setting.json" >>= pure . fromJust . decode
 
--- doMigration :: IO ()
-doMigration f = do
+doMigration :: Migration -> IO ()
+doMigration proc = do
     conf <- pgConf
-    runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runReaderT $ runMigration f
+    runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runReaderT $ runMigration proc
 
-runDB :: SqlPersistT (ResourceT (NoLoggingT IO)) a -> IO a
+runDB :: SqlPersistT (ResourceT (LoggingT IO)) a -> IO a
 runDB f = do
     conf <- pgConf
-    runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
+    -- runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
+    -- flip runLoggingT logFunc $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
+    runStdoutLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
+
+logFunc = undefined
