@@ -36,14 +36,16 @@ selectUsers = runDB $ selectList [] []
 getUser :: Key User -> IO (Maybe (Entity User))
 getUser = runDB . getEntity
 
-insertUser :: User -> IO (Entity User)
+insertUser :: User -> IO (Maybe (Entity User))
 insertUser user = runDB $ do
     mInDb <- getBy $ UniqueUserName $ user^.userName
     case mInDb of
-      Just inDb -> pure inDb
+      Just inDb -> pure Nothing
       Nothing   -> do
                      key <- insert user
-                     pure $ Entity key user
+                     return $ Just $ Entity key user
 
 migrate :: IO ()
-migrate = doMigration migrateAll
+migrate = do
+    pgConf >>= print
+    doMigration migrateAll

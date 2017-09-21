@@ -22,6 +22,7 @@ library
                      , bytestring
                      , text
                      , aeson
+                     , yaml
                      , lens
                      , monad-logger
                      , transformers

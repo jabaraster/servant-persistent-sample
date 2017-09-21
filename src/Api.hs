@@ -15,13 +15,30 @@ import           Servant
 
 
 type ApiDef  = Get '[JSON] [Entity User]
-            :<|> "users" :> Capture "userId" (Key User) :> Get '[JSON] (Maybe (Entity User))
+            :<|> "users" :> Get '[JSON] [Entity User]
+            :<|> "users" :> Capture "userId" (Key User) :> Get '[JSON] (Entity User)
             :<|> "users" :> ReqBody '[JSON] User :> Post '[JSON] (Entity User)
 
 server :: Server ApiDef
 server = liftIO selectUsers
-         :<|> (\userId -> liftIO $ getUser userId)
-         :<|> liftIO . insertUser
+         :<|> liftIO selectUsers
+         :<|> (\userId -> do
+                  mUser <- liftIO $ getUser userId
+                  case mUser of
+                      Nothing -> throwError err404
+                      Just u  -> pure u
+              )
+         :<|> (\user -> do
+                  mRes <- liftIO $ insertUser user
+                  case mRes of
+                      Nothing -> throwError $ ServantErr {
+                                     errHTTPCode = 204
+                                   , errReasonPhrase = ""
+                                   , errBody = ""
+                                   , errHeaders = []
+                                              }
+                      Just u  -> pure u
+              )
 
 api :: Proxy ApiDef
 api = Proxy
