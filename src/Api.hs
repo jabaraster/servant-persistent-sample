@@ -22,23 +22,28 @@ type ApiDef  = Get '[JSON] [Entity User]
 server :: Server ApiDef
 server = liftIO selectUsers
          :<|> liftIO selectUsers
+         -- :<|> liftIO . getUser >>= toResponse'
          :<|> (\userId -> do
                   mUser <- liftIO $ getUser userId
-                  case mUser of
-                      Nothing -> throwError err404
-                      Just u  -> pure u
+                  toResponse' err404 mUser
               )
          :<|> (\user -> do
                   mRes <- liftIO $ insertUser user
-                  case mRes of
-                      Nothing -> throwError $ ServantErr {
-                                     errHTTPCode = 204
-                                   , errReasonPhrase = ""
-                                   , errBody = ""
-                                   , errHeaders = []
-                                              }
-                      Just u  -> pure u
+                  toResponse 204 mRes
               )
+
+toResponse :: Int -> Maybe a -> Handler a
+toResponse responseCode Nothing = throwError $ ServantErr {
+                errHTTPCode = responseCode
+              , errReasonPhrase = ""
+              , errBody = ""
+              , errHeaders = []
+            }
+toResponse _ (Just a) = pure a
+
+toResponse' :: ServantErr -> Maybe a -> Handler a
+toResponse' err Nothing = throwError err
+toResponse' _ (Just a)  = pure a
 
 api :: Proxy ApiDef
 api = Proxy

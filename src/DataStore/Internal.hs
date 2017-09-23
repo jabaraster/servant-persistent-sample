@@ -1,6 +1,8 @@
 module DataStore.Internal (
     runDB
+  , runDB'
   , pgConf
+  , pgPool
   , doMigration
 ) where
 
@@ -11,7 +13,9 @@ import           Control.Monad.Logger         (NoLoggingT
                                              , LoggingT
                                              , runLoggingT
                                               )
-import           Control.Monad.Trans.Reader   (runReaderT)
+import           Control.Monad.Trans.Reader   (ReaderT
+                                             , runReaderT
+                                              )
 import           Control.Monad.Trans.Resource (ResourceT
                                              , runResourceT
                                               )
@@ -21,11 +25,13 @@ import           Data.Maybe
 import           Data.Yaml.Config
 import           Database.Persist.Postgresql  (PostgresConf(..)
                                              , withPostgresqlConn
+                                             , createPostgresqlPool
                                               )
 import           Database.Persist.Sql         (SqlPersistT
                                              , Migration
                                              , ConnectionPool
                                              , runSqlConn
+                                             , runSqlPool
                                              , runMigration
                                               )
 
@@ -38,11 +44,20 @@ doMigration proc = do
     conf <- pgConf
     runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runReaderT $ runMigration proc
 
-runDB :: SqlPersistT (ResourceT (NoLoggingT IO)) a -> IO a
-runDB f = do
+pgPool :: IO ConnectionPool
+pgPool = do
     conf <- pgConf
-    runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
+    runStdoutLoggingT $ createPostgresqlPool (pgConnStr conf) (pgPoolSize conf)
+
+runDB :: SqlPersistT (ResourceT (LoggingT IO)) a -> IO a
+runDB action = do
+    conf <- pgConf
+    -- runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
     -- flip runLoggingT logFunc $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
-    -- runStdoutLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
+    runStdoutLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn action
+
+runDB' :: SqlPersistT (ResourceT (LoggingT IO)) a -> IO a
+runDB' f = undefined
+    -- runStdoutLoggingT . runResourceT . runReaderT . runSqlPool f 
 
 logFunc = undefined

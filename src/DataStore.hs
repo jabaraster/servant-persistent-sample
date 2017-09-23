@@ -31,7 +31,7 @@ User json
 |]
 
 selectUsers :: IO [Entity User]
-selectUsers = runDB $ selectList [] []
+selectUsers = runDB' $ selectList [] []
 
 getUser :: Key User -> IO (Maybe (Entity User))
 getUser = runDB . getEntity
