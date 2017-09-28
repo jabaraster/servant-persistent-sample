@@ -40,9 +40,9 @@ pgConf :: IO PostgresConf
 pgConf = loadYamlSettings ["conf/database-setting.yml"] [] useEnv
 
 doMigration :: Migration -> IO ()
-doMigration proc = do
+doMigration action = do
     conf <- pgConf
-    runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runReaderT $ runMigration proc
+    runStdoutLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runReaderT $ runMigration action
 
 pgPool :: IO ConnectionPool
 pgPool = do
@@ -53,11 +53,11 @@ runDB :: SqlPersistT (ResourceT (LoggingT IO)) a -> IO a
 runDB action = do
     conf <- pgConf
     -- runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
-    -- flip runLoggingT logFunc $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
     runStdoutLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn action
 
 runDB' :: SqlPersistT (ResourceT (LoggingT IO)) a -> IO a
-runDB' f = undefined
-    -- runStdoutLoggingT . runResourceT . runReaderT . runSqlPool f 
+runDB' action = do
+    pool <- pgPool
+    runStdoutLoggingT $ runResourceT $ runSqlPool action pool
 
 logFunc = undefined
