@@ -1,11 +1,11 @@
-module DataStore.Internal (
-    runDB
-  , runDB'
-  , pgConf
-  , pgPool
-  , doMigration
-) where
+{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+module DataStore.Internal where
 
+import           Control.Monad.IO.Class       (liftIO
+                                             , MonadIO
+                                              )
 import           Control.Monad.Logger         (NoLoggingT
                                              , runNoLoggingT
                                              , runStdoutLoggingT
@@ -15,6 +15,8 @@ import           Control.Monad.Logger         (NoLoggingT
                                               )
 import           Control.Monad.Trans.Reader   (ReaderT
                                              , runReaderT
+                                             , ask
+                                             , asks
                                               )
 import           Control.Monad.Trans.Resource (ResourceT
                                              , runResourceT
@@ -22,13 +24,21 @@ import           Control.Monad.Trans.Resource (ResourceT
 import           Data.Aeson
 import qualified Data.ByteString.Lazy         as B
 import           Data.Maybe
-import           Data.Yaml.Config
+import           Data.Yaml.Config             (loadYamlSettings
+                                             , useEnv
+                                              )
 import           Database.Persist.Postgresql  (PostgresConf(..)
                                              , withPostgresqlConn
                                              , createPostgresqlPool
                                               )
 import           Database.Persist.Sql         (SqlPersistT
                                              , Migration
+                                             , SqlBackend
+                                             , PersistQuery
+                                             , PersistEntityBackend
+                                             , BaseBackend
+                                             , PersistEntity
+                                             , PersistQueryRead
                                              , ConnectionPool
                                              , runSqlConn
                                              , runSqlPool
@@ -60,4 +70,3 @@ runDB' action = do
     pool <- pgPool
     runStdoutLoggingT $ runResourceT $ runSqlPool action pool
 
-logFunc = undefined

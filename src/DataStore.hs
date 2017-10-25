@@ -31,10 +31,14 @@ User json
 |]
 
 selectUsers :: IO [Entity User]
-selectUsers = runDB' $ selectList [] []
+selectUsers = runDB $ selectList [] []
 
 getUser :: Key User -> IO (Maybe (Entity User))
 getUser = runDB . getEntity
+
+getUser' :: Key User -> IO (Maybe (Entity User))
+getUser' = f . getEntity
+  where f = undefined
 
 insertUser :: User -> IO (Maybe (Entity User))
 insertUser user = runDB $ do

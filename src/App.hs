@@ -1,18 +1,6 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TypeOperators              #-}
+module App where
 
-module Api (
-    main
-    ) where
-
-import           Control.Monad.IO.Class       (liftIO)
-import           Data.Text                    (Text)
-import           Database.Persist
-import           DataStore
-import           Network.Wai.Handler.Warp
-import           Servant
-
+import DataStore.Internal
 
 type ApiDef  = Get '[JSON] [Entity User]
             :<|> "users" :> Get '[JSON] [Entity User]
@@ -45,16 +33,12 @@ toResponse' :: ServantErr -> Maybe a -> Handler a
 toResponse' err Nothing = throwError err
 toResponse' _ (Just a)  = pure a
 
-api :: Proxy ApiDef
-api = Proxy
 
-app :: Application
-app = serve api server
+app :: ConnectionPool -> Application
+app pool = serve api $ server pool
 
-main :: IO ()
-main = do
-    putStrLn "{- ----------------------------"
-    putStrLn " - start server!"
-    putStrLn " ----------------------------- -}"
-    migrate
-    run 1234 app
+mkApp :: IO Application
+mkApp = do
+  pool <- pgPool
+  runSqlPool (doMigration migrateAll) pool
+  return $ app pool
