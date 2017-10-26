@@ -1,13 +1,11 @@
 name:                servant-sample
 version:             0.1.0.0
--- synopsis:
--- description:
-homepage:            https://github.com/githubuser/servant-sample#readme
-license:             BSD3
+homepage:            https://github.com/jabaraster/servant-persistent-sample.git
+license:             MIT
 license-file:        LICENSE
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2017 Author name here
+author:              Tomoyuki Kawano
+maintainer:          jabaraster@example.com
+copyright:           2017 Tomoyuki Kawano
 category:            Web
 build-type:          Simple
 extra-source-files:  README.md
@@ -59,4 +57,4 @@ executable servant-sample
 
 source-repository head
   type:     git
-  location: https://github.com/jabaraster/servant-persistent-sample
+  location: https://github.com/jabaraster/servant-persistent-sample.git

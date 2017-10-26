@@ -3,13 +3,13 @@
 {-# LANGUAGE TypeOperators              #-}
 module App where
 
-import           Control.Monad.IO.Class   (liftIO)
-import           Database.Persist.Sql
-import           DataStore
-import           DataStore.Internal       (pgPool)
-import           Network.Wai.Handler.Warp (run, Port)
-import           Servant
-import           Servant.API
+import Control.Monad.IO.Class   (liftIO)
+import Database.Persist.Sql
+import DataStore
+import DataStore.Internal       (pgPool)
+import Network.Wai.Handler.Warp (run, Port)
+import Servant
+import Servant.API
 
 type ApiDef  = Get '[JSON] [Entity User]
             :<|> "users" :> Get '[JSON] [Entity User]
