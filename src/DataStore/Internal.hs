@@ -3,9 +3,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 module DataStore.Internal where
 
-import           Control.Monad.IO.Class       (liftIO
-                                             , MonadIO
-                                              )
 import           Control.Monad.Logger         (NoLoggingT
                                              , runNoLoggingT
                                              , runStdoutLoggingT
@@ -58,15 +55,3 @@ pgPool :: IO ConnectionPool
 pgPool = do
     conf <- pgConf
     runStdoutLoggingT $ createPostgresqlPool (pgConnStr conf) (pgPoolSize conf)
-
-runDB :: SqlPersistT (ResourceT (LoggingT IO)) a -> IO a
-runDB action = do
-    conf <- pgConf
-    -- runNoLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn f
-    runStdoutLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runSqlConn action
-
-runDB' :: SqlPersistT (ResourceT (LoggingT IO)) a -> IO a
-runDB' action = do
-    pool <- pgPool
-    runStdoutLoggingT $ runResourceT $ runSqlPool action pool
-

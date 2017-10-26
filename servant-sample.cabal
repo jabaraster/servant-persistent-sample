@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Api
+  exposed-modules:     App
                      , DataStore
                      , DataStore.Internal
   build-depends:       base >= 4.7 && < 5

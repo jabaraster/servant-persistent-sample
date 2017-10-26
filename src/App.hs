@@ -1,22 +1,30 @@
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE TypeOperators              #-}
 module App where
 
-import DataStore.Internal
+import           Control.Monad.IO.Class   (liftIO)
+import           Database.Persist.Sql
+import           DataStore
+import           DataStore.Internal       (pgPool)
+import           Network.Wai.Handler.Warp (run, Port)
+import           Servant
+import           Servant.API
 
 type ApiDef  = Get '[JSON] [Entity User]
             :<|> "users" :> Get '[JSON] [Entity User]
             :<|> "users" :> Capture "userId" (Key User) :> Get '[JSON] (Entity User)
             :<|> "users" :> ReqBody '[JSON] User :> Post '[JSON] (Entity User)
 
-server :: ConnectinoPool -> Server ApiDef
-server pool = liftIO selectUsers
-         :<|> liftIO selectUsers
-         -- :<|> liftIO . getUser >>= toResponse'
+server :: ConnectionPool -> Server ApiDef
+server pool = (liftIO $ getUsers pool)
+         :<|> (liftIO $ getUsers pool)
          :<|> (\userId -> do
-                  mUser <- liftIO $ getUser userId
+                  mUser <- liftIO $ getUser pool userId
                   toResponse' err404 mUser
               )
          :<|> (\user -> do
-                  mRes <- liftIO $ insertUser user
+                  mRes <- liftIO $ insertUser pool user
                   toResponse 204 mRes
               )
 
@@ -33,12 +41,21 @@ toResponse' :: ServantErr -> Maybe a -> Handler a
 toResponse' err Nothing = throwError err
 toResponse' _ (Just a)  = pure a
 
+api :: Proxy ApiDef
+api = Proxy
 
 app :: ConnectionPool -> Application
 app pool = serve api $ server pool
 
 mkApp :: IO Application
 mkApp = do
+  migrateDb
   pool <- pgPool
-  runSqlPool (doMigration migrateAll) pool
   return $ app pool
+
+startServer :: Port -> IO ()
+startServer port = do
+    putStrLn "{- ----------------------------"
+    putStrLn " - start server!"
+    putStrLn " ----------------------------- -}"
+    run port =<< mkApp

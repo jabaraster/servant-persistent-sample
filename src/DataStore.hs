@@ -9,18 +9,21 @@
 
 module DataStore where
 
-import           Control.Lens
-import           Data.Text                    (Text)
-import           Database.Persist
-import           Database.Persist.TH          (mkMigrate
-                                             , mkPersist
-                                             , persistLowerCase
-                                             , share
-                                             , sqlSettings
-                                             , mpsGenerateLenses
-                                              )
-import           DataStore.Internal
-import           GHC.Generics
+import Control.Lens                 ((^.))
+import Data.Text                    (Text)
+import Database.Persist
+import Database.Persist.Sql         (ConnectionPool
+                                   , runSqlPool
+                                    )
+import Database.Persist.TH          (mkMigrate
+                                   , mkPersist
+                                   , persistLowerCase
+                                   , share
+                                   , sqlSettings
+                                   , mpsGenerateLenses
+                                    )
+import DataStore.Internal
+import GHC.Generics
 
 share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
 User json
@@ -30,26 +33,20 @@ User json
     deriving Eq Show Generic
 |]
 
-selectUsers :: IO [Entity User]
-selectUsers = runDB $ selectList [] []
+getUsers :: ConnectionPool -> IO [Entity User]
+getUsers pool = flip runSqlPool pool $ selectList [] []
 
-getUser :: Key User -> IO (Maybe (Entity User))
-getUser = runDB . getEntity
+getUser :: ConnectionPool -> Key User -> IO (Maybe (Entity User))
+getUser pool = flip runSqlPool pool . getEntity
 
-getUser' :: Key User -> IO (Maybe (Entity User))
-getUser' = f . getEntity
-  where f = undefined
-
-insertUser :: User -> IO (Maybe (Entity User))
-insertUser user = runDB $ do
+insertUser :: ConnectionPool -> User -> IO (Maybe (Entity User))
+insertUser pool user = flip runSqlPool pool $ do
     mInDb <- getBy $ UniqueUserName $ user^.userName
     case mInDb of
       Just inDb -> pure Nothing
       Nothing   -> do
                      key <- insert user
-                     return $ Just $ Entity key user
+                     pure $ Just $ Entity key user
 
-migrate :: IO ()
-migrate = do
-    pgConf >>= print
-    doMigration migrateAll
+migrateDb :: IO ()
+migrateDb = doMigration migrateAll
