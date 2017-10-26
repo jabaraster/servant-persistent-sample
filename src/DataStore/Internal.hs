@@ -3,24 +3,9 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 module DataStore.Internal where
 
-import           Control.Monad.Logger         (NoLoggingT
-                                             , runNoLoggingT
-                                             , runStdoutLoggingT
-                                             , runStderrLoggingT
-                                             , LoggingT
-                                             , runLoggingT
-                                              )
-import           Control.Monad.Trans.Reader   (ReaderT
-                                             , runReaderT
-                                             , ask
-                                             , asks
-                                              )
-import           Control.Monad.Trans.Resource (ResourceT
-                                             , runResourceT
-                                              )
-import           Data.Aeson
-import qualified Data.ByteString.Lazy         as B
-import           Data.Maybe
+import           Control.Monad.Logger         (runStdoutLoggingT)
+import           Control.Monad.Trans.Reader   (runReaderT)
+import           Control.Monad.Trans.Resource (runResourceT)
 import           Data.Yaml.Config             (loadYamlSettings
                                              , useEnv
                                               )
@@ -28,17 +13,8 @@ import           Database.Persist.Postgresql  (PostgresConf(..)
                                              , withPostgresqlConn
                                              , createPostgresqlPool
                                               )
-import           Database.Persist.Sql         (SqlPersistT
-                                             , Migration
-                                             , SqlBackend
-                                             , PersistQuery
-                                             , PersistEntityBackend
-                                             , BaseBackend
-                                             , PersistEntity
-                                             , PersistQueryRead
+import           Database.Persist.Sql         (Migration
                                              , ConnectionPool
-                                             , runSqlConn
-                                             , runSqlPool
                                              , runMigration
                                               )
 
@@ -46,12 +22,12 @@ import           Database.Persist.Sql         (SqlPersistT
 pgConf :: IO PostgresConf
 pgConf = loadYamlSettings ["conf/database-setting.yml"] [] useEnv
 
-doMigration :: Migration -> IO ()
-doMigration action = do
-    conf <- pgConf
-    runStdoutLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runReaderT $ runMigration action
-
 pgPool :: IO ConnectionPool
 pgPool = do
     conf <- pgConf
     runStdoutLoggingT $ createPostgresqlPool (pgConnStr conf) (pgPoolSize conf)
+
+doMigration :: Migration -> IO ()
+doMigration action = do
+    conf <- pgConf
+    runStdoutLoggingT $ runResourceT $ withPostgresqlConn (pgConnStr conf) $ runReaderT $ runMigration action
