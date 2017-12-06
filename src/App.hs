@@ -9,37 +9,13 @@ import DataStore
 import DataStore.Internal       (pgPool)
 import Network.Wai.Handler.Warp (run, Port)
 import Servant
-import Servant.API
 
 type ApiDef  = Get '[JSON] [Entity User]
             :<|> "users" :> Get '[JSON] [Entity User]
-            :<|> "users" :> Capture "userId" (Key User) :> Get '[JSON] (Entity User)
-            :<|> "users" :> ReqBody '[JSON] User :> Post '[JSON] (Entity User)
 
 server :: ConnectionPool -> Server ApiDef
 server pool = (liftIO $ getUsers pool)
          :<|> (liftIO $ getUsers pool)
-         :<|> (\userId -> do
-                  mUser <- liftIO $ getUser pool userId
-                  toResponse' err404 mUser
-              )
-         :<|> (\user -> do
-                  mRes <- liftIO $ insertUser pool user
-                  toResponse 204 mRes
-              )
-
-toResponse :: Int -> Maybe a -> Handler a
-toResponse responseCode Nothing = throwError $ ServantErr {
-                errHTTPCode = responseCode
-              , errReasonPhrase = ""
-              , errBody = ""
-              , errHeaders = []
-            }
-toResponse _ (Just a) = pure a
-
-toResponse' :: ServantErr -> Maybe a -> Handler a
-toResponse' err Nothing = throwError err
-toResponse' _ (Just a)  = pure a
 
 api :: Proxy ApiDef
 api = Proxy
