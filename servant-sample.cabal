@@ -30,6 +30,7 @@ library
                      , persistent-postgresql
                      , servant
                      , servant-server
+                     , http-types
                      , wai
                      , warp
   default-language:    Haskell2010
@@ -48,6 +49,7 @@ executable servant-sample
                      , persistent
                      , persistent-template
                      , persistent-postgresql
+                     , esqueleto
                      , wai
                      , warp
                      , servant

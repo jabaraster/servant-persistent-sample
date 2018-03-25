@@ -1,15 +1,16 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
 module App where
 
-import Control.Monad.IO.Class   (liftIO)
-import Database.Persist.Sql
-import DataStore
-import DataStore.Internal       (pgPool)
-import Network.Wai.Handler.Warp (run, Port)
-import Servant
-import Servant.API
+import           Control.Monad.IO.Class    (liftIO)
+import           Database.Persist.Sql
+import           DataStore
+import           DataStore.Internal        (pgPool)
+import           Network.HTTP.Types.Status
+import           Network.Wai.Handler.Warp  (Port, run)
+import           Servant
+import           Servant.API
 
 type ApiDef  = Get '[JSON] [Entity User]
             :<|> "users" :> Get '[JSON] [Entity User]
@@ -25,12 +26,12 @@ server pool = (liftIO $ getUsers pool)
               )
          :<|> (\user -> do
                   mRes <- liftIO $ insertUser pool user
-                  toResponse 204 mRes
+                  toResponse status204 mRes
               )
 
-toResponse :: Int -> Maybe a -> Handler a
+toResponse :: Status -> Maybe a -> Handler a
 toResponse responseCode Nothing = throwError $ ServantErr {
-                errHTTPCode = responseCode
+                errHTTPCode = statusCode responseCode
               , errReasonPhrase = ""
               , errBody = ""
               , errHeaders = []
