@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -11,13 +9,11 @@
 module DataStore where
 
 import           Control.Lens           ((^.))
-import           Control.Monad.IO.Class (liftIO)
 import           Data.Text              (Text)
 import           Database.Persist
 import           Database.Persist.Sql   (ConnectionPool, runSqlPool)
 import           Database.Persist.TH    (mkMigrate, mkPersist, mpsGenerateLenses, persistLowerCase, share, sqlSettings)
 import           DataStore.Internal
-import           GHC.Generics
 
 share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
 User json
@@ -28,7 +24,7 @@ User json
 Person json
     name String
     age Int Maybe
-    deriving Eq Show Generic
+    deriving Eq Show
 |]
 
 runDb pool action = flip runSqlPool pool action
