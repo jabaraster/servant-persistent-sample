@@ -16,3 +16,9 @@ HaskellでRESTサーバを作るためのライブラリ[Servant](https://haskel
 ### [haskell-servant/example-servant-persistent](https://github.com/haskell-servant/example-servant-persistent)
 
 persistのバージョンが古いのでシグニチャを変える必要はあるが、参考になった。
+
+
+### [Using a custom monad](http://haskell-servant.readthedocs.io/en/stable/cookbook/using-custom-monad/UsingCustomMonad.html)
+
+Servant本家のカスタムモナドの解説. Servantのバージョンには注意.
+

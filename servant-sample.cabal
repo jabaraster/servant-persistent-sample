@@ -4,7 +4,7 @@ homepage:            https://github.com/jabaraster/servant-persistent-sample.git
 license:             MIT
 license-file:        LICENSE
 author:              Tomoyuki Kawano
-maintainer:          jabaraster@example.com
+maintainer:          ah@jabara.info
 copyright:           2017 Tomoyuki Kawano
 category:            Web
 build-type:          Simple
@@ -13,10 +13,9 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     App
-                     , DataStore
+  exposed-modules:     DataStore
                      , DataStore.Internal
-  build-depends:       base >= 4.7 && < 5
+  build-depends:       base
                      , bytestring
                      , text
                      , aeson
@@ -36,24 +35,28 @@ library
   default-language:    Haskell2010
 
 executable servant-sample
-  hs-source-dirs:      app
+  hs-source-dirs:      src
+  other-modules:       DataStore
+                     , DataStore.Internal
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , bytestring
                      , text
                      , aeson
+                     , yaml
+                     , lens
                      , monad-logger
                      , transformers
                      , resourcet
                      , persistent
                      , persistent-template
                      , persistent-postgresql
-                     , esqueleto
-                     , wai
-                     , warp
                      , servant
                      , servant-server
+                     , http-types
+                     , wai
+                     , warp
                      , servant-sample
   default-language:    Haskell2010
 

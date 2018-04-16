@@ -13,7 +13,6 @@ module DataStore where
 import           Control.Lens           ((^.))
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Text              (Text)
--- import qualified Database.Esqueleto     as E
 import           Database.Persist
 import           Database.Persist.Sql   (ConnectionPool, runSqlPool)
 import           Database.Persist.TH    (mkMigrate, mkPersist, mpsGenerateLenses, persistLowerCase, share, sqlSettings)
@@ -34,16 +33,11 @@ Person json
 
 runDb pool action = flip runSqlPool pool action
 
--- putPersons :: E.SqlPersist m ()
--- putPersons = E.select $
---                  E.from $ \person -> do
---                  return person
+selectAllUsers :: ConnectionPool -> IO [Entity User]
+selectAllUsers pool = runDb pool $ selectList [] []
 
-getUsers :: ConnectionPool -> IO [Entity User]
-getUsers pool = runDb pool $ selectList [] []
-
-getUser :: ConnectionPool -> Key User -> IO (Maybe (Entity User))
-getUser pool = runDb pool . getEntity
+selectUser :: ConnectionPool -> Key User -> IO (Maybe (Entity User))
+selectUser pool = runDb pool . getEntity
 
 insertUser :: ConnectionPool -> User -> IO (Maybe (Entity User))
 insertUser pool user = runDb pool $ do
