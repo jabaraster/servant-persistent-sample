@@ -15,6 +15,8 @@ library
   hs-source-dirs:      src
   exposed-modules:     DataStore
                      , DataStore.Internal
+                     , Handler
+                     , Router
   build-depends:       base
                      , bytestring
                      , text
