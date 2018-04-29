@@ -6,16 +6,12 @@ module Handler (
   , getUsers
 ) where
 
+import           Control.Monad.IO.Class     (liftIO)
 import           Control.Monad.Trans.Reader (ReaderT, ask)
 import           Database.Persist           (Entity)
-import           Control.Monad.IO.Class     (liftIO)
-import           Database.Persist.Sql       (ConnectionPool)
 import           DataStore
 import           Servant
-
-data State = State
-  { connPool :: ConnectionPool
-  }
+import           State
 
 type AppM = ReaderT State Handler
 
