@@ -16,12 +16,12 @@ import           Database.Persist.TH    (mkMigrate, mkPersist, mpsGenerateLenses
 import           DataStore.Internal
 
 share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
-User json
+EUser json
     name Text
     age Int
     UniqueUserName name
     deriving Eq Show
-Person json
+EPerson json
     name String
     age Int Maybe
     deriving Eq Show
@@ -29,15 +29,15 @@ Person json
 
 runDb pool action = flip runSqlPool pool action
 
-selectAllUsers :: ConnectionPool -> IO [Entity User]
+selectAllUsers :: ConnectionPool -> IO [Entity EUser]
 selectAllUsers pool = runDb pool $ selectList [] []
 
-selectUser :: ConnectionPool -> Key User -> IO (Maybe (Entity User))
+selectUser :: ConnectionPool -> Key EUser -> IO (Maybe (Entity EUser))
 selectUser pool = runDb pool . getEntity
 
-insertUser :: ConnectionPool -> User -> IO (Maybe (Entity User))
+insertUser :: ConnectionPool -> EUser -> IO (Maybe (Entity EUser))
 insertUser pool user = runDb pool $ do
-    mInDb <- getBy $ UniqueUserName $ user^.userName
+    mInDb <- getBy $ UniqueUserName $ user^.eUserName
     case mInDb of
       Just inDb -> pure Nothing
       Nothing   -> do

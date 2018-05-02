@@ -19,9 +19,9 @@ import           Servant
 import           Servant.Utils.StaticFiles
 import           State
 
-type API = "users" :> Get '[JSON] [Entity User]
-      :<|> "users" :> Capture "userId" (Key User) :> Get '[JSON] (Entity User)
-      :<|> "users" :> ReqBody '[JSON] User :> PostCreated '[JSON] (Entity User)
+type API = "users" :> Get '[JSON] [Entity EUser]
+      :<|> "users" :> Capture "userId" (Key EUser) :> Get '[JSON] (Entity EUser)
+      :<|> "users" :> ReqBody '[JSON] EUser :> PostCreated '[JSON] (Entity EUser)
       :<|> "static" :> Raw
 
 api :: Proxy API
@@ -49,14 +49,14 @@ server s = (liftIO . getUsers) s
       :<|> addUser' s
       :<|> serveDirectoryWebApp "./static"
 
-getUser' :: State -> Key User -> Handler (Entity User)
+getUser' :: State -> Key EUser -> Handler (Entity EUser)
 getUser' s userId = do
     mUser <- liftIO $ getUser s userId
     case mUser of
         Nothing -> res status404 "not found."
         Just user -> return user
 
-addUser' :: State -> User -> Handler (Entity User)
+addUser' :: State -> EUser -> Handler (Entity EUser)
 addUser' s user = do
     mUser <- liftIO $ addUser s user
     case mUser of
