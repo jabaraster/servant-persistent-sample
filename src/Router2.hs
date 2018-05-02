@@ -69,7 +69,9 @@ app s = serve api $ server s
 main :: IO ()
 main = do
     let port = 8000
-    migrateDb
+    -- migrateDb
     pool <- pgPool
-    putStrLn ("start server on " ++ (show port))
+    putStrLn "{-- ----------------------------------- --}"
+    putStrLn ("{-- start server on " ++ (show port) ++ " --}")
+    putStrLn "{-- ----------------------------------- --}"
     run port $ app $ State pool
