@@ -15,8 +15,9 @@ library
   hs-source-dirs:      src
   exposed-modules:     DataStore
                      , DataStore.Internal
-                     , Handler
-                     , Router
+                     , Handler2
+                     , State
+                     , Router2
   build-depends:       base
                      , bytestring
                      , text
@@ -40,6 +41,9 @@ executable servant-sample
   hs-source-dirs:      src
   other-modules:       DataStore
                      , DataStore.Internal
+                     , Handler2
+                     , State
+                     , Router2
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
