@@ -7,10 +7,9 @@
 // orig method which is the require for previous bundles
 
 // eslint-disable-next-line no-global-assign
-parcelRequire = (function (modules, cache, entry) {
+require = (function (modules, cache, entry) {
   // Save the require from previous bundle to this closure if any
-  var previousRequire = typeof parcelRequire === 'function' && parcelRequire;
-  var nodeRequire = typeof require === 'function' && require;
+  var previousRequire = typeof require === "function" && require;
 
   function newRequire(name, jumped) {
     if (!cache[name]) {
@@ -18,7 +17,7 @@ parcelRequire = (function (modules, cache, entry) {
         // if we cannot find the module within our internal map or
         // cache jump to the current global require ie. the last bundle
         // that was added to the page.
-        var currentRequire = typeof parcelRequire === 'function' && parcelRequire;
+        var currentRequire = typeof require === "function" && require;
         if (!jumped && currentRequire) {
           return currentRequire(name, true);
         }
@@ -29,11 +28,6 @@ parcelRequire = (function (modules, cache, entry) {
         // we exhaust the require chain.
         if (previousRequire) {
           return previousRequire(name, true);
-        }
-
-        // Try the node require function if it exists.
-        if (nodeRequire && typeof name === 'string') {
-          return nodeRequire(name);
         }
 
         var err = new Error('Cannot find module \'' + name + '\'');
@@ -123,28 +117,20 @@ function create() {
 
     emitter.startFollow(logo);
 }
-},{}],6:[function(require,module,exports) {
-
-var OVERLAY_ID = '__parcel__error__overlay__';
+},{}],3:[function(require,module,exports) {
 
 var global = (1, eval)('this');
 var OldModule = module.bundle.Module;
-
 function Module(moduleName) {
   OldModule.call(this, moduleName);
   this.hot = {
-    data: module.bundle.hotData,
-    _acceptCallbacks: [],
-    _disposeCallbacks: [],
     accept: function (fn) {
-      this._acceptCallbacks.push(fn || function () {});
+      this._acceptCallback = fn || function () {};
     },
     dispose: function (fn) {
-      this._disposeCallbacks.push(fn);
+      this._disposeCallback = fn;
     }
   };
-
-  module.bundle.hotData = null;
 }
 
 module.bundle.Module = Module;
@@ -152,19 +138,19 @@ module.bundle.Module = Module;
 var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = '' || location.hostname;
-  var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + '61111' + '/');
+  var protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + '64601' + '/');
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
 
     if (data.type === 'update') {
       data.assets.forEach(function (asset) {
-        hmrApply(global.parcelRequire, asset);
+        hmrApply(global.require, asset);
       });
 
       data.assets.forEach(function (asset) {
         if (!asset.isNew) {
-          hmrAccept(global.parcelRequire, asset.id);
+          hmrAccept(global.require, asset.id);
         }
       });
     }
@@ -178,41 +164,12 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
 
     if (data.type === 'error-resolved') {
       console.log('[parcel] ✨ Error resolved');
-
-      removeErrorOverlay();
     }
 
     if (data.type === 'error') {
-      console.error('[parcel] 🚨  ' + data.error.message + '\n' + data.error.stack);
-
-      removeErrorOverlay();
-
-      var overlay = createErrorOverlay(data);
-      document.body.appendChild(overlay);
+      console.error('[parcel] 🚨  ' + data.error.message + '\n' + 'data.error.stack');
     }
   };
-}
-
-function removeErrorOverlay() {
-  var overlay = document.getElementById(OVERLAY_ID);
-  if (overlay) {
-    overlay.remove();
-  }
-}
-
-function createErrorOverlay(data) {
-  var overlay = document.createElement('div');
-  overlay.id = OVERLAY_ID;
-
-  // html encode message and stack trace
-  var message = document.createElement('div');
-  var stackTrace = document.createElement('pre');
-  message.innerText = data.error.message;
-  stackTrace.innerText = data.error.stack;
-
-  overlay.innerHTML = '<div style="background: black; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; opacity: 0.85; font-family: Menlo, Consolas, monospace; z-index: 9999;">' + '<span style="background: red; padding: 2px 4px; border-radius: 2px;">ERROR</span>' + '<span style="top: 2px; margin-left: 5px; position: relative;">🚨</span>' + '<div style="font-size: 18px; font-weight: bold; margin-top: 20px;">' + message.innerHTML + '</div>' + '<pre>' + stackTrace.innerHTML + '</pre>' + '</div>';
-
-  return overlay;
 }
 
 function getParents(bundle, id) {
@@ -266,31 +223,22 @@ function hmrAccept(bundle, id) {
   }
 
   var cached = bundle.cache[id];
-  bundle.hotData = {};
-  if (cached) {
-    cached.hot.data = bundle.hotData;
-  }
-
-  if (cached && cached.hot && cached.hot._disposeCallbacks.length) {
-    cached.hot._disposeCallbacks.forEach(function (cb) {
-      cb(bundle.hotData);
-    });
+  if (cached && cached.hot._disposeCallback) {
+    cached.hot._disposeCallback();
   }
 
   delete bundle.cache[id];
   bundle(id);
 
   cached = bundle.cache[id];
-  if (cached && cached.hot && cached.hot._acceptCallbacks.length) {
-    cached.hot._acceptCallbacks.forEach(function (cb) {
-      cb();
-    });
+  if (cached && cached.hot && cached.hot._acceptCallback) {
+    cached.hot._acceptCallback();
     return true;
   }
 
-  return getParents(global.parcelRequire, id).some(function (id) {
-    return hmrAccept(global.parcelRequire, id);
+  return getParents(global.require, id).some(function (id) {
+    return hmrAccept(global.require, id);
   });
 }
-},{}]},{},[6,1])
-//# sourceMappingURL=/app.map
+},{}]},{},[3,1])
+//# sourceMappingURL=/static/app.map

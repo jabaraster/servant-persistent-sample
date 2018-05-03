@@ -29,20 +29,5 @@ EPerson json
 
 runDb pool action = flip runSqlPool pool action
 
-selectAllUsers :: ConnectionPool -> IO [Entity EUser]
-selectAllUsers pool = runDb pool $ selectList [] []
-
-selectUser :: ConnectionPool -> Key EUser -> IO (Maybe (Entity EUser))
-selectUser pool = runDb pool . getEntity
-
-insertUser :: ConnectionPool -> EUser -> IO (Maybe (Entity EUser))
-insertUser pool user = runDb pool $ do
-    mInDb <- getBy $ UniqueUserName $ user^.eUserName
-    case mInDb of
-      Just inDb -> pure Nothing
-      Nothing   -> do
-                     key <- insert user
-                     pure $ Just $ Entity key user
-
 migrateDb :: IO ()
 migrateDb = doMigration migrateAll
